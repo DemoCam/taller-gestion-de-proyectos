@@ -1,6 +1,8 @@
 import { useState, useMemo } from "react";
+import { motion, useReducedMotion } from "framer-motion";
 import { useApp } from "../context/AppContext";
 import SurveyForm from "./SurveyForm";
+import Icon from "./Icon";
 
 export default function EncuestasList() {
   const { encuestas, eliminarEncuesta, validarEncuesta } = useApp();
@@ -54,9 +56,33 @@ export default function EncuestasList() {
   }
 
   function sortIcon(campo) {
-    if (orden.campo !== campo) return " ↕";
-    return orden.dir === "asc" ? " ↑" : " ↓";
+    if (orden.campo !== campo) return "sort";
+    return orden.dir === "asc" ? "sortAsc" : "sortDesc";
   }
+
+  const prefersReducedMotion = useReducedMotion();
+
+  const kpiContainer = {
+    hidden: {},
+    show: { transition: { staggerChildren: prefersReducedMotion ? 0 : 0.06 } },
+  };
+  const kpiItem = prefersReducedMotion
+    ? { hidden: { opacity: 1, y: 0 }, show: { opacity: 1, y: 0 } }
+    : {
+        hidden: { opacity: 0, y: 16 },
+        show: { opacity: 1, y: 0, transition: { duration: 0.4, ease: "easeOut" } },
+      };
+
+  const rowVariants = prefersReducedMotion
+    ? { hidden: { opacity: 1, y: 0 }, show: { opacity: 1, y: 0 } }
+    : {
+        hidden: { opacity: 0, y: 6 },
+        show: (i) => ({
+          opacity: 1,
+          y: 0,
+          transition: { duration: 0.22, ease: "easeOut", delay: i * 0.025 },
+        }),
+      };
 
   if (editando) {
     return <SurveyForm editando={editando} onClose={() => setEditando(null)} />;
@@ -75,12 +101,18 @@ export default function EncuestasList() {
           </p>
         </div>
         <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap", alignItems: "center" }}>
-          <input
-            value={busqueda}
-            onChange={(e) => { setBusqueda(e.target.value); setPagina(1); }}
-            placeholder="🔍  Buscar..."
-            style={{ width: 200 }}
-          />
+          <div style={{ position: "relative", width: 220 }}>
+            <span style={{
+              position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)",
+              color: "#64748b", pointerEvents: "none", display: "flex",
+            }}><Icon name="buscar" size="sm" /></span>
+            <input
+              value={busqueda}
+              onChange={(e) => { setBusqueda(e.target.value); setPagina(1); }}
+              placeholder="Buscar..."
+              style={{ width: "100%", paddingLeft: "2.3rem" }}
+            />
+          </div>
           <select
             value={filtroValidada}
             onChange={(e) => { setFiltroValidada(e.target.value); setPagina(1); }}
@@ -110,22 +142,25 @@ export default function EncuestasList() {
                   ["jornada","Jornada"],
                 ].map(([campo, titulo]) => (
                   <th key={campo} style={{ cursor: "pointer", userSelect: "none" }} onClick={() => toggleOrden(campo)}>
-                    {titulo}{sortIcon(campo)}
+                    <span style={{ display: "inline-flex", alignItems: "center", gap: "0.3rem" }}>
+                      {titulo}
+                      <Icon name={sortIcon(campo)} size={13} style={{ opacity: orden.campo === campo ? 0.9 : 0.35 }} />
+                    </span>
                   </th>
                 ))}
                 <th>Estado</th>
                 <th>Acciones</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody key={pagActual}>
               {paginadas.length === 0 ? (
                 <tr>
                   <td colSpan={10} style={{ textAlign: "center", padding: "2rem", color: "#475569" }}>
                     No se encontraron encuestas
                   </td>
                 </tr>
-              ) : paginadas.map((enc) => (
-                <tr key={enc.id}>
+              ) : paginadas.map((enc, i) => (
+                <motion.tr key={enc.id} custom={i} variants={rowVariants} initial="hidden" animate="show">
                   <td style={{ color: "#94a3b8", fontSize: "0.78rem" }}>{enc.fechaCaptura}</td>
                   <td>
                     <div style={{ fontWeight: 600 }}>{enc.nombres} {enc.apellidos}</div>
@@ -138,29 +173,29 @@ export default function EncuestasList() {
                   <td style={{ color: "#94a3b8", fontSize: "0.78rem" }}>{enc.encuestadorId}</td>
                   <td>
                     <span className={`badge ${enc.jornada === "Mañana" ? "badge-info" : "badge-violet"}`}>
-                      {enc.jornada === "Mañana" ? "☀" : "🌙"} {enc.jornada}
+                      <Icon name={enc.jornada === "Mañana" ? "manana" : "tarde"} size={12} /> {enc.jornada}
                     </span>
                   </td>
                   <td>
                     <span className={`badge ${enc.validada ? "badge-ok" : "badge-warn"}`}>
-                      {enc.validada ? "✓ Válida" : "⏳ Pendiente"}
+                      <Icon name={enc.validada ? "check" : "pendientes"} size={12} /> {enc.validada ? "Válida" : "Pendiente"}
                     </span>
                   </td>
                   <td>
                     <div style={{ display: "flex", gap: "0.4rem" }}>
-                      <button className="btn btn-secondary" style={{ padding: "0.3rem 0.6rem", fontSize: "0.72rem" }}
-                        onClick={() => setEditando(enc)}>✎</button>
+                      <button className="btn btn-secondary btn-icon" title="Editar"
+                        onClick={() => setEditando(enc)}><Icon name="editar" size="sm" /></button>
                       {!enc.validada && (
-                        <button className="btn btn-success" style={{ padding: "0.3rem 0.6rem", fontSize: "0.72rem" }}
-                          onClick={() => validarEncuesta(enc.id)}>✓</button>
+                        <button className="btn btn-success btn-icon" title="Validar"
+                          onClick={() => validarEncuesta(enc.id)}><Icon name="check" size="sm" /></button>
                       )}
-                      <button className="btn btn-danger" style={{ padding: "0.3rem 0.6rem", fontSize: "0.72rem" }}
+                      <button className="btn btn-danger btn-icon" title="Eliminar"
                         onClick={() => { if (confirm(`¿Eliminar encuesta de ${enc.nombres} ${enc.apellidos}?`)) eliminarEncuesta(enc.id); }}>
-                        ✕
+                        <Icon name="eliminar" size="sm" />
                       </button>
                     </div>
                   </td>
-                </tr>
+                </motion.tr>
               ))}
             </tbody>
           </table>
@@ -169,9 +204,9 @@ export default function EncuestasList() {
         {/* Pagination */}
         {totalPaginas > 1 && (
           <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem", padding: "1rem", borderTop: "1px solid rgba(255,255,255,0.06)" }}>
-            <button className="btn btn-secondary" style={{ padding: "0.35rem 0.75rem" }}
+            <button className="btn btn-secondary btn-icon"
               onClick={() => setPagina((p) => Math.max(1, p - 1))} disabled={pagActual === 1}>
-              ←
+              <Icon name="prev" size="sm" />
             </button>
             {Array.from({ length: totalPaginas }, (_, i) => i + 1).map((p) => (
               <button key={p} onClick={() => setPagina(p)}
@@ -180,28 +215,28 @@ export default function EncuestasList() {
                 {p}
               </button>
             ))}
-            <button className="btn btn-secondary" style={{ padding: "0.35rem 0.75rem" }}
+            <button className="btn btn-secondary btn-icon"
               onClick={() => setPagina((p) => Math.min(totalPaginas, p + 1))} disabled={pagActual === totalPaginas}>
-              →
+              <Icon name="next" size="sm" />
             </button>
           </div>
         )}
       </div>
 
       {/* Summary strip */}
-      <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
+      <motion.div style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }} variants={kpiContainer} initial="hidden" animate="show">
         {[
           { label: "Total filtradas", value: filtradas.length, color: "#6366f1" },
           { label: "Validadas", value: filtradas.filter((e) => e.validada).length, color: "#22c55e" },
           { label: "Pendientes", value: filtradas.filter((e) => !e.validada).length, color: "#f59e0b" },
         ].map(({ label, value, color }) => (
-          <div key={label} className="glass-sm" style={{ padding: "0.75rem 1.25rem", display: "flex", gap: "0.75rem", alignItems: "center" }}>
+          <motion.div key={label} className="glass-sm card-interactive" style={{ padding: "0.75rem 1.25rem", display: "flex", gap: "0.75rem", alignItems: "center" }} variants={kpiItem}>
             <div style={{ width: 8, height: 8, borderRadius: "50%", background: color }} />
             <span style={{ fontSize: "0.8rem", color: "#94a3b8" }}>{label}:</span>
             <span style={{ fontSize: "0.9rem", fontWeight: 700, color: "#f8fafc" }}>{value}</span>
-          </div>
+          </motion.div>
         ))}
-      </div>
+      </motion.div>
     </div>
   );
 }

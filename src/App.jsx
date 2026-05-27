@@ -1,4 +1,5 @@
 import "./index.css";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { AppProvider, useApp } from "./context/AppContext";
 import Sidebar from "./components/Sidebar";
 import Dashboard from "./components/Dashboard";
@@ -7,6 +8,7 @@ import EncuestasList from "./components/EncuestasList";
 import Analytics from "./components/Analytics";
 import Exportar from "./components/Exportar";
 import Opciones from "./components/Opciones";
+import AppSkeleton from "./components/Skeleton";
 
 function OrbField() {
   return (
@@ -32,6 +34,7 @@ function OrbField() {
 
 function MainContent() {
   const { activeView } = useApp();
+  const reduce = useReducedMotion();
 
   const views = {
     dashboard:  <Dashboard />,
@@ -42,6 +45,14 @@ function MainContent() {
     opciones:   <Opciones />,
   };
 
+  const variants = reduce
+    ? { initial: { opacity: 1 }, animate: { opacity: 1 }, exit: { opacity: 1 } }
+    : {
+        initial: { opacity: 0, y: 14 },
+        animate: { opacity: 1, y: 0, transition: { duration: 0.32, ease: [0.22, 1, 0.36, 1] } },
+        exit:    { opacity: 0, y: -10, transition: { duration: 0.18, ease: "easeIn" } },
+      };
+
   return (
     <main style={{
       flex: 1,
@@ -50,8 +61,34 @@ function MainContent() {
       position: "relative",
       zIndex: 1,
     }}>
-      {views[activeView] || <Dashboard />}
+      <AnimatePresence mode="wait" initial={false}>
+        <motion.div
+          key={activeView}
+          variants={variants}
+          initial="initial"
+          animate="animate"
+          exit="exit"
+        >
+          {views[activeView] || <Dashboard />}
+        </motion.div>
+      </AnimatePresence>
     </main>
+  );
+}
+
+function Shell() {
+  const { loading } = useApp();
+
+  if (loading) return <AppSkeleton />;
+
+  return (
+    <div style={{
+      position: "relative", zIndex: 1,
+      display: "flex", minHeight: "100vh",
+    }}>
+      <Sidebar />
+      <MainContent />
+    </div>
   );
 }
 
@@ -74,14 +111,7 @@ export default function App() {
           pointerEvents: "none",
         }} />
 
-        {/* App layout */}
-        <div style={{
-          position: "relative", zIndex: 1,
-          display: "flex", minHeight: "100vh",
-        }}>
-          <Sidebar />
-          <MainContent />
-        </div>
+        <Shell />
       </div>
     </AppProvider>
   );

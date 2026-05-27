@@ -39,6 +39,12 @@ export function AppProvider({ children }) {
   });
 
   const [activeView, setActiveView] = useState("dashboard");
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const t = setTimeout(() => setLoading(false), 900);
+    return () => clearTimeout(t);
+  }, []);
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(encuestas));
@@ -85,6 +91,7 @@ export function AppProvider({ children }) {
         opciones,
         activeView,
         setActiveView,
+        loading,
         agregarEncuesta,
         actualizarEncuesta,
         eliminarEncuesta,

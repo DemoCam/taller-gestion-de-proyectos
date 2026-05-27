@@ -1,18 +1,59 @@
-import { useMemo } from "react";
+import { useMemo, useEffect, useState } from "react";
 import {
   AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell,
   XAxis, YAxis, Tooltip, ResponsiveContainer, Legend,
 } from "recharts";
+import {
+  motion, useReducedMotion, useMotionValue, useTransform, animate,
+} from "framer-motion";
 import { useApp } from "../context/AppContext";
 import { getGrupoEtario, calcularEdad } from "../data/colombia";
+import Icon from "./Icon";
 
 const COLORS = ["#6366f1","#8b5cf6","#06b6d4","#f59e0b","#10b981","#ec4899","#f97316","#14b8a6"];
 
-function StatCard({ icon, label, value, sub, color = "#6366f1", delay = 0 }) {
+// Variants for staggered entrance
+const containerVariants = {
+  hidden: {},
+  show: { transition: { staggerChildren: 0.06 } },
+};
+const itemVariants = {
+  hidden: { opacity: 0, y: 16 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.45, ease: "easeOut" } },
+};
+
+// Count-up display for numeric values; renders strings as-is
+function CountUpValue({ value }) {
+  const reduce = useReducedMotion();
+  const isNumber = typeof value === "number";
+  const motionVal = useMotionValue(0);
+  const rounded = useTransform(motionVal, (v) => Math.round(v).toLocaleString("es-CO"));
+  const [display, setDisplay] = useState(() => (isNumber ? "0" : value));
+
+  useEffect(() => {
+    if (!isNumber) {
+      setDisplay(value);
+      return;
+    }
+    if (reduce) {
+      setDisplay(Math.round(value).toLocaleString("es-CO"));
+      return;
+    }
+    const unsubscribe = rounded.on("change", (v) => setDisplay(v));
+    const controls = animate(motionVal, value, { duration: 1, ease: "easeOut" });
+    return () => {
+      controls.stop();
+      unsubscribe();
+    };
+  }, [value, isNumber, reduce, motionVal, rounded]);
+
+  return <>{display}</>;
+}
+
+function StatCard({ icon, label, value, sub, color = "#6366f1" }) {
   return (
-    <div className="glass animate-fadeIn" style={{
+    <motion.div className="glass card-interactive" variants={itemVariants} style={{
       padding: "1.25rem",
-      animationDelay: `${delay}s`,
       position: "relative",
       overflow: "hidden",
     }}>
@@ -32,25 +73,26 @@ function StatCard({ icon, label, value, sub, color = "#6366f1", delay = 0 }) {
             {label}
           </div>
           <div style={{ fontSize: "2rem", fontWeight: 800, color: "#f8fafc", lineHeight: 1, letterSpacing: "-0.03em" }}>
-            {value}
+            <CountUpValue value={value} />
           </div>
           {sub && <div style={{ fontSize: "0.72rem", color: "#64748b", marginTop: "0.35rem" }}>{sub}</div>}
         </div>
         <div style={{
           width: 40, height: 40,
-          background: `${color}20`,
-          border: `1px solid ${color}40`,
+          background: `${color}1f`,
+          border: `1px solid ${color}3d`,
           borderRadius: 10,
           display: "flex", alignItems: "center", justifyContent: "center",
-          fontSize: "1.1rem",
-        }}>{icon}</div>
+          color,
+        }}><Icon name={icon} size="lg" /></div>
       </div>
-    </div>
+    </motion.div>
   );
 }
 
 export default function Dashboard() {
   const { encuestas } = useApp();
+  const reduce = useReducedMotion();
 
   const stats = useMemo(() => {
     const total = encuestas.length;
@@ -135,24 +177,36 @@ export default function Dashboard() {
           fontSize: "0.75rem",
           color: "#a5b4fc",
           fontWeight: 600,
+          display: "inline-flex", alignItems: "center", gap: "0.45rem",
         }}>
+          <Icon name="fecha" size="sm" />
           {new Date().toLocaleDateString("es-CO", { day:"2-digit", month:"long", year:"numeric" })}
         </div>
       </div>
 
       {/* Stat cards */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))", gap: "1rem" }}>
-        <StatCard icon="◈" label="Total Encuestas"  value={stats.total}     sub="registros capturados"   color="#6366f1" delay={0.0} />
-        <StatCard icon="✓" label="Validadas"         value={stats.validadas}  sub="por supervisor"         color="#10b981" delay={0.05} />
-        <StatCard icon="◎" label="Pendientes"        value={stats.pendientes} sub="por revisar"            color="#f59e0b" delay={0.1} />
-        <StatCard icon="⬡" label="Top Ciudad"        value={topCiudad}        sub={`${stats.porCiudad[0]?.value || 0} encuestas`} color="#06b6d4" delay={0.15} />
-        <StatCard icon="◉" label="Top Departamento"  value={topDepto}         sub={`${stats.porDepto[0]?.value || 0} encuestas`} color="#8b5cf6" delay={0.2} />
-      </div>
+      <motion.div
+        variants={containerVariants}
+        initial={reduce ? false : "hidden"}
+        animate="show"
+        style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))", gap: "1rem" }}
+      >
+        <StatCard icon="total"      label="Total Encuestas"  value={stats.total}     sub="registros capturados"   color="#6366f1" />
+        <StatCard icon="validadas"  label="Validadas"         value={stats.validadas}  sub="por supervisor"         color="#10b981" />
+        <StatCard icon="pendientes" label="Pendientes"        value={stats.pendientes} sub="por revisar"            color="#f59e0b" />
+        <StatCard icon="ciudad"     label="Top Ciudad"        value={topCiudad}        sub={`${stats.porCiudad[0]?.value || 0} encuestas`} color="#06b6d4" />
+        <StatCard icon="depto"      label="Top Departamento"  value={topDepto}         sub={`${stats.porDepto[0]?.value || 0} encuestas`} color="#8b5cf6" />
+      </motion.div>
 
       {/* Charts row 1 */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1.25rem" }}>
+      <motion.div
+        variants={containerVariants}
+        initial={reduce ? false : "hidden"}
+        animate="show"
+        style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1.25rem" }}
+      >
         {/* Encuestas por fecha */}
-        <div className="glass" style={{ padding: "1.25rem" }}>
+        <motion.div className="glass" variants={itemVariants} style={{ padding: "1.25rem" }}>
           <h3 style={{ fontSize: "0.85rem", fontWeight: 700, color: "#94a3b8", marginBottom: "1rem", textTransform: "uppercase", letterSpacing: "0.05em" }}>
             Encuestas por Fecha
           </h3>
@@ -170,10 +224,10 @@ export default function Dashboard() {
               <Area type="monotone" dataKey="value" name="Encuestas" stroke="#6366f1" strokeWidth={2} fill="url(#gArea)" />
             </AreaChart>
           </ResponsiveContainer>
-        </div>
+        </motion.div>
 
         {/* Jornada */}
-        <div className="glass" style={{ padding: "1.25rem" }}>
+        <motion.div className="glass" variants={itemVariants} style={{ padding: "1.25rem" }}>
           <h3 style={{ fontSize: "0.85rem", fontWeight: 700, color: "#94a3b8", marginBottom: "1rem", textTransform: "uppercase", letterSpacing: "0.05em" }}>
             Distribución por Jornada
           </h3>
@@ -191,13 +245,18 @@ export default function Dashboard() {
               <Tooltip contentStyle={{ background: "#0f172a", border: "1px solid rgba(99,102,241,0.3)", borderRadius: 10, fontSize: 12 }} />
             </PieChart>
           </ResponsiveContainer>
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
 
       {/* Charts row 2 */}
-      <div style={{ display: "grid", gridTemplateColumns: "1.5fr 1fr", gap: "1.25rem" }}>
+      <motion.div
+        variants={containerVariants}
+        initial={reduce ? false : "hidden"}
+        animate="show"
+        style={{ display: "grid", gridTemplateColumns: "1.5fr 1fr", gap: "1.25rem" }}
+      >
         {/* Educación */}
-        <div className="glass" style={{ padding: "1.25rem" }}>
+        <motion.div className="glass" variants={itemVariants} style={{ padding: "1.25rem" }}>
           <h3 style={{ fontSize: "0.85rem", fontWeight: 700, color: "#94a3b8", marginBottom: "1rem", textTransform: "uppercase", letterSpacing: "0.05em" }}>
             Nivel Educativo
           </h3>
@@ -213,10 +272,10 @@ export default function Dashboard() {
               </Bar>
             </BarChart>
           </ResponsiveContainer>
-        </div>
+        </motion.div>
 
         {/* Grupos etarios */}
-        <div className="glass" style={{ padding: "1.25rem" }}>
+        <motion.div className="glass" variants={itemVariants} style={{ padding: "1.25rem" }}>
           <h3 style={{ fontSize: "0.85rem", fontWeight: 700, color: "#94a3b8", marginBottom: "1rem", textTransform: "uppercase", letterSpacing: "0.05em" }}>
             Grupos Etarios
           </h3>
@@ -234,11 +293,17 @@ export default function Dashboard() {
               <Legend wrapperStyle={{ fontSize: 11, color: "#94a3b8" }} />
             </PieChart>
           </ResponsiveContainer>
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
 
       {/* Ciudades */}
-      <div className="glass" style={{ padding: "1.25rem" }}>
+      <motion.div
+        className="glass"
+        variants={itemVariants}
+        initial={reduce ? false : "hidden"}
+        animate="show"
+        style={{ padding: "1.25rem" }}
+      >
         <h3 style={{ fontSize: "0.85rem", fontWeight: 700, color: "#94a3b8", marginBottom: "1rem", textTransform: "uppercase", letterSpacing: "0.05em" }}>
           Top Ciudades de Residencia
         </h3>
@@ -254,7 +319,7 @@ export default function Dashboard() {
             </Bar>
           </BarChart>
         </ResponsiveContainer>
-      </div>
+      </motion.div>
     </div>
   );
 }

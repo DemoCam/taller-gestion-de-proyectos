@@ -1,6 +1,24 @@
 import { useState, useMemo } from "react";
 import { useApp } from "../context/AppContext";
 import { DEPARTAMENTOS_CIUDADES, calcularEdad, getJornada } from "../data/colombia";
+import Icon from "./Icon";
+
+function SectionHead({ icon, color, children }) {
+  return (
+    <h2 style={{
+      fontSize: "0.78rem", fontWeight: 700, color, marginBottom: "1.2rem",
+      textTransform: "uppercase", letterSpacing: "0.08em",
+      display: "flex", alignItems: "center", gap: "0.55rem",
+    }}>
+      <span style={{
+        width: 28, height: 28, borderRadius: 8, flexShrink: 0,
+        background: `${color}1f`, border: `1px solid ${color}3d`, color,
+        display: "inline-flex", alignItems: "center", justifyContent: "center",
+      }}><Icon name={icon} size="sm" /></span>
+      {children}
+    </h2>
+  );
+}
 
 const EMPTY = {
   nombres: "", apellidos: "", fechaNacimiento: "",
@@ -111,16 +129,14 @@ export default function SurveyForm({ editando, onClose }) {
           borderRadius: 12, padding: "1rem 1.25rem", marginBottom: "1.5rem",
           color: "#4ade80", fontWeight: 600, fontSize: "0.875rem", display: "flex", gap: "0.5rem", alignItems: "center",
         }}>
-          ✓ Encuesta registrada exitosamente
+          <Icon name="validadas" size="md" /> Encuesta registrada exitosamente
         </div>
       )}
 
       <form onSubmit={handleSubmit}>
         {/* Datos personales */}
         <div className="glass" style={{ padding: "1.5rem", marginBottom: "1.25rem" }}>
-          <h2 style={{ fontSize: "0.78rem", fontWeight: 700, color: "#6366f1", marginBottom: "1.2rem", textTransform: "uppercase", letterSpacing: "0.08em" }}>
-            ◈ Datos Personales
-          </h2>
+          <SectionHead icon="persona" color="#6366f1">Datos Personales</SectionHead>
           <div className="form-grid">
             <Field label="Nombres" error={errors.nombres}>
               <input value={form.nombres} onChange={(e) => set("nombres", e.target.value)} placeholder="Nombres del encuestado" />
@@ -156,9 +172,7 @@ export default function SurveyForm({ editando, onClose }) {
         {/* Residencia */}
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1.25rem", marginBottom: "1.25rem" }}>
           <div className="glass" style={{ padding: "1.5rem" }}>
-            <h2 style={{ fontSize: "0.78rem", fontWeight: 700, color: "#8b5cf6", marginBottom: "1.2rem", textTransform: "uppercase", letterSpacing: "0.08em" }}>
-              ◉ Ciudad de Residencia
-            </h2>
+            <SectionHead icon="residencia" color="#8b5cf6">Ciudad de Residencia</SectionHead>
             <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
               <Field label="Departamento de residencia" error={errors.departamentoResidencia}>
                 <select value={form.departamentoResidencia} onChange={(e) => set("departamentoResidencia", e.target.value)}>
@@ -177,9 +191,7 @@ export default function SurveyForm({ editando, onClose }) {
           </div>
 
           <div className="glass" style={{ padding: "1.5rem" }}>
-            <h2 style={{ fontSize: "0.78rem", fontWeight: 700, color: "#06b6d4", marginBottom: "1.2rem", textTransform: "uppercase", letterSpacing: "0.08em" }}>
-              ⬡ Ciudad de Nacimiento
-            </h2>
+            <SectionHead icon="nacimiento" color="#06b6d4">Ciudad de Nacimiento</SectionHead>
             <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
               <Field label="Departamento de nacimiento" error={errors.departamentoNacimiento}>
                 <select value={form.departamentoNacimiento} onChange={(e) => set("departamentoNacimiento", e.target.value)}>
@@ -200,9 +212,7 @@ export default function SurveyForm({ editando, onClose }) {
 
         {/* Captura */}
         <div className="glass" style={{ padding: "1.5rem", marginBottom: "1.5rem" }}>
-          <h2 style={{ fontSize: "0.78rem", fontWeight: 700, color: "#f59e0b", marginBottom: "1.2rem", textTransform: "uppercase", letterSpacing: "0.08em" }}>
-            ✦ Datos de Captura
-          </h2>
+          <SectionHead icon="captura" color="#f59e0b">Datos de Captura</SectionHead>
           <div className="form-grid">
             <Field label="Encuestador" error={errors.encuestadorId}>
               <select value={form.encuestadorId} onChange={(e) => set("encuestadorId", e.target.value)}>
@@ -226,7 +236,9 @@ export default function SurveyForm({ editando, onClose }) {
 
         <div style={{ display: "flex", gap: "0.75rem" }}>
           <button type="submit" className="btn btn-primary" style={{ padding: "0.75rem 2rem" }}>
-            {editando ? "Guardar cambios" : "✦ Registrar encuesta"}
+            {editando
+              ? <><Icon name="check" size="sm" /> Guardar cambios</>
+              : <><Icon name="agregar" size="sm" /> Registrar encuesta</>}
           </button>
           {editando && (
             <button type="button" className="btn btn-secondary" onClick={onClose}>

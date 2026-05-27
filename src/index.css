@@ -44,10 +44,22 @@ body {
 
 .glass {
   background: var(--glass-bg);
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  backdrop-filter: blur(20px) saturate(130%);
+  -webkit-backdrop-filter: blur(20px) saturate(130%);
   border: 1px solid var(--glass-border);
   border-radius: 20px;
+  box-shadow: 0 1px 0 rgba(255,255,255,0.04) inset, 0 12px 32px -12px rgba(0,0,0,0.5);
+}
+
+/* Cards that respond to hover with a subtle lift (skill: scale-feedback / elevation) */
+.card-interactive {
+  transition: transform 0.22s cubic-bezier(0.22,1,0.36,1), box-shadow 0.22s ease, border-color 0.22s ease;
+  will-change: transform;
+}
+.card-interactive:hover {
+  transform: translateY(-3px);
+  border-color: var(--glass-highlight);
+  box-shadow: 0 1px 0 rgba(255,255,255,0.06) inset, 0 22px 48px -16px rgba(0,0,0,0.65);
 }
 
 .glass-sm {
@@ -121,12 +133,22 @@ label {
   white-space: nowrap;
 }
 
+.btn:active { transform: translateY(0) scale(0.97); }
+.btn:focus-visible { outline: 2px solid rgba(165,180,252,0.9); outline-offset: 2px; }
+
+.btn-icon {
+  padding: 0;
+  width: 34px;
+  height: 34px;
+  justify-content: center;
+}
+
 .btn-primary {
   background: linear-gradient(135deg, #6366f1, #8b5cf6);
   color: white;
   box-shadow: 0 4px 15px rgba(99,102,241,0.4);
 }
-.btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(99,102,241,0.5); }
+.btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 22px rgba(99,102,241,0.55); }
 
 .btn-secondary {
   background: rgba(255,255,255,0.06);
@@ -222,24 +244,42 @@ tbody td { padding: 0.75rem 1rem; color: var(--text-primary); white-space: nowra
 }
 
 .nav-item {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 0.75rem;
   padding: 0.65rem 1rem;
   border-radius: 12px;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: background 0.2s, color 0.2s, border-color 0.2s;
   color: var(--text-secondary);
   font-size: 0.875rem;
   font-weight: 500;
   border: 1px solid transparent;
 }
 .nav-item:hover { background: rgba(255,255,255,0.05); color: var(--text-primary); }
+.nav-item:hover .nav-indicator { transform: translateY(-50%) scaleY(0.45); opacity: 0.5; }
+.nav-item:focus-visible { outline: 2px solid rgba(165,180,252,0.9); outline-offset: 2px; }
 .nav-item.active {
   background: linear-gradient(135deg, rgba(99,102,241,0.2), rgba(139,92,246,0.2));
   border-color: rgba(99,102,241,0.3);
   color: #a5b4fc;
 }
+
+.nav-indicator {
+  position: absolute;
+  left: -1px;
+  top: 50%;
+  width: 3px;
+  height: 60%;
+  border-radius: 0 3px 3px 0;
+  background: linear-gradient(180deg, #6366f1, #8b5cf6);
+  transform: translateY(-50%) scaleY(0);
+  transform-origin: center;
+  opacity: 0;
+  transition: transform 0.25s cubic-bezier(0.22,1,0.36,1), opacity 0.25s ease;
+}
+.nav-item.active .nav-indicator { transform: translateY(-50%) scaleY(1); opacity: 1; }
 
 .orb {
   border-radius: 50%;
@@ -248,6 +288,37 @@ tbody td { padding: 0.75rem 1rem; color: var(--text-primary); white-space: nowra
   pointer-events: none;
 }
 
+/* Skeleton loading placeholders with shimmer sweep */
+.skeleton {
+  position: relative;
+  overflow: hidden;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.04);
+}
+.skeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.07), transparent);
+  animation: shimmer 1.4s ease-in-out infinite;
+}
+@keyframes shimmer { 100% { transform: translateX(100%); } }
+
 @media (max-width: 768px) {
   .form-grid { grid-template-columns: 1fr; }
+}
+
+/* Respect users who prefer reduced motion (skill: reduced-motion) */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+  .animate-float, .animate-floatR, .animate-spin-slow, .animate-pulse-glow {
+    animation: none !important;
+  }
+  .card-interactive:hover { transform: none; }
 }

@@ -2,6 +2,7 @@ import { useState } from "react";
 import * as XLSX from "xlsx";
 import { useApp } from "../context/AppContext";
 import { getGrupoEtario } from "../data/colombia";
+import Icon from "./Icon";
 
 function encuestaToRow(e) {
   return {
@@ -60,7 +61,7 @@ export default function Exportar() {
       ),
     ].join("\n");
     download(new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8" }), "encuestas.csv");
-    showStatus(`✓ CSV exportado — ${rows.length} registros`);
+    showStatus(`CSV exportado — ${rows.length} registros`);
   }
 
   function exportTXT() {
@@ -72,7 +73,7 @@ export default function Exportar() {
       ...rows.map((r) => header.map((h) => r[h] ?? "").join("\t")),
     ].join("\n");
     download(new Blob([txt], { type: "text/plain;charset=utf-8" }), "encuestas.txt");
-    showStatus(`✓ TXT exportado — ${rows.length} registros`);
+    showStatus(`TXT exportado — ${rows.length} registros`);
   }
 
   function exportXLSX() {
@@ -109,7 +110,7 @@ export default function Exportar() {
     XLSX.utils.book_append_sheet(wb, wsEduc, "Por Educación");
 
     XLSX.writeFile(wb, "encuestas.xlsx");
-    showStatus(`✓ XLSX exportado — ${rows.length} registros, 4 hojas`);
+    showStatus(`XLSX exportado — ${rows.length} registros, 4 hojas`);
   }
 
   function download(blob, filename) {
@@ -137,15 +138,17 @@ export default function Exportar() {
           borderRadius: 12, padding: "0.875rem 1.25rem", marginBottom: "1.5rem",
           color: status.ok ? "#4ade80" : "#f87171",
           fontWeight: 600, fontSize: "0.875rem",
+          display: "flex", alignItems: "center", gap: "0.5rem",
         }}>
+          <Icon name={status.ok ? "validadas" : "peligro"} size="md" />
           {status.msg}
         </div>
       )}
 
       {/* Options */}
       <div className="glass" style={{ padding: "1.5rem", marginBottom: "1.5rem" }}>
-        <h3 style={{ fontSize: "0.78rem", fontWeight: 700, color: "#6366f1", marginBottom: "1.2rem", textTransform: "uppercase", letterSpacing: "0.08em" }}>
-          ◈ Opciones de exportación
+        <h3 style={{ fontSize: "0.78rem", fontWeight: 700, color: "#6366f1", marginBottom: "1.2rem", textTransform: "uppercase", letterSpacing: "0.08em", display: "flex", alignItems: "center", gap: "0.5rem" }}>
+          <Icon name="opcionesExport" size="sm" /> Opciones de exportación
         </h3>
         <div style={{ display: "flex", flexDirection: "column", gap: "0.9rem" }}>
           {[
@@ -209,18 +212,21 @@ export default function Exportar() {
 
       {/* Export buttons */}
       <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
-        <button className="btn btn-primary" style={{ flex: "1 1 180px", padding: "1rem", justifyContent: "center", flexDirection: "column", gap: "0.3rem" }}
+        <button className="btn btn-primary" style={{ flex: "1 1 180px", padding: "1.1rem", justifyContent: "center", flexDirection: "column", gap: "0.45rem" }}
           onClick={exportXLSX}>
+          <Icon name="xlsx" size="xl" />
           <span>Exportar XLSX</span>
           <span style={{ fontSize: "0.7rem", opacity: 0.75, fontWeight: 400 }}>Excel con múltiples hojas</span>
         </button>
-        <button className="btn btn-cyan" style={{ flex: "1 1 140px", padding: "1rem", justifyContent: "center", flexDirection: "column", gap: "0.3rem" }}
+        <button className="btn btn-cyan" style={{ flex: "1 1 140px", padding: "1.1rem", justifyContent: "center", flexDirection: "column", gap: "0.45rem" }}
           onClick={exportCSV}>
+          <Icon name="csv" size="xl" />
           <span>Exportar CSV</span>
           <span style={{ fontSize: "0.7rem", opacity: 0.75, fontWeight: 400 }}>Compatible con cualquier herramienta</span>
         </button>
-        <button className="btn btn-secondary" style={{ flex: "1 1 140px", padding: "1rem", justifyContent: "center", flexDirection: "column", gap: "0.3rem" }}
+        <button className="btn btn-secondary" style={{ flex: "1 1 140px", padding: "1.1rem", justifyContent: "center", flexDirection: "column", gap: "0.45rem" }}
           onClick={exportTXT}>
+          <Icon name="txt" size="xl" />
           <span>Exportar TXT</span>
           <span style={{ fontSize: "0.7rem", opacity: 0.75, fontWeight: 400 }}>Archivo plano separado por tabs</span>
         </button>

@@ -3,6 +3,7 @@ import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
   Cell, Legend, RadarChart, PolarGrid, PolarAngleAxis, Radar,
 } from "recharts";
+import { motion, useReducedMotion } from "framer-motion";
 import { useApp } from "../context/AppContext";
 import { getGrupoEtario, GRUPOS_ETARIOS } from "../data/colombia";
 
@@ -79,6 +80,28 @@ export default function Analytics() {
 
   const nivelesUnicos = [...new Set(filtradas.map((e) => e.nivelEducativo))];
 
+  const prefersReducedMotion = useReducedMotion();
+
+  const kpiContainer = {
+    hidden: {},
+    show: {
+      transition: { staggerChildren: prefersReducedMotion ? 0 : 0.06 },
+    },
+  };
+  const kpiItem = prefersReducedMotion
+    ? { hidden: { opacity: 1, y: 0 }, show: { opacity: 1, y: 0 } }
+    : {
+        hidden: { opacity: 0, y: 16 },
+        show: { opacity: 1, y: 0, transition: { duration: 0.4, ease: "easeOut" } },
+      };
+
+  const cardReveal = prefersReducedMotion
+    ? { initial: { opacity: 1, y: 0 }, animate: { opacity: 1, y: 0 } }
+    : {
+        initial: { opacity: 0, y: 18 },
+        animate: { opacity: 1, y: 0, transition: { duration: 0.45, ease: "easeOut" } },
+      };
+
   return (
     <div style={{ padding: "2rem", display: "flex", flexDirection: "column", gap: "1.5rem" }}>
       {/* Header */}
@@ -109,21 +132,22 @@ export default function Analytics() {
       </div>
 
       {/* KPIs filtradas */}
-      <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
+      <motion.div style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }} variants={kpiContainer} initial="hidden" animate="show">
         {[
           { label: "Registros filtrados", value: filtradas.length, color: "#6366f1" },
           { label: "Ciudades únicas", value: new Set(filtradas.map((e) => e.ciudadResidencia)).size, color: "#8b5cf6" },
           { label: "Departamentos", value: new Set(filtradas.map((e) => e.departamentoResidencia)).size, color: "#06b6d4" },
           { label: "Niveles educativos", value: new Set(filtradas.map((e) => e.nivelEducativo)).size, color: "#10b981" },
         ].map(({ label, value, color }) => (
-          <div key={label} className="glass" style={{ flex: "1 1 160px", padding: "1rem 1.25rem" }}>
+          <motion.div key={label} className="glass card-interactive" style={{ flex: "1 1 160px", padding: "1rem 1.25rem" }} variants={kpiItem}>
             <div style={{ fontSize: "0.7rem", color: "#64748b", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em" }}>{label}</div>
             <div style={{ fontSize: "2rem", fontWeight: 800, color, lineHeight: 1.2, marginTop: "0.25rem" }}>{value}</div>
-          </div>
+          </motion.div>
         ))}
-      </div>
+      </motion.div>
 
       {/* Educación × Ciudad */}
+      <motion.div {...cardReveal}>
       <div className="glass" style={{ padding: "1.5rem" }}>
         <h3 style={{ fontSize: "0.85rem", fontWeight: 700, color: "#94a3b8", marginBottom: "1rem", textTransform: "uppercase", letterSpacing: "0.05em" }}>
           Escolaridad por Ciudad de Residencia
@@ -144,8 +168,10 @@ export default function Analytics() {
           <div style={{ textAlign: "center", color: "#475569", padding: "2rem" }}>Sin datos para el filtro seleccionado</div>
         )}
       </div>
+      </motion.div>
 
       {/* Educación × Departamento */}
+      <motion.div {...cardReveal}>
       <div className="glass" style={{ padding: "1.5rem" }}>
         <h3 style={{ fontSize: "0.85rem", fontWeight: 700, color: "#94a3b8", marginBottom: "1rem", textTransform: "uppercase", letterSpacing: "0.05em" }}>
           Escolaridad por Departamento
@@ -166,9 +192,11 @@ export default function Analytics() {
           <div style={{ textAlign: "center", color: "#475569", padding: "2rem" }}>Sin datos</div>
         )}
       </div>
+      </motion.div>
 
       {/* Educación × Grupo etario (radar) */}
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1.25rem" }}>
+        <motion.div {...cardReveal}>
         <div className="glass" style={{ padding: "1.5rem" }}>
           <h3 style={{ fontSize: "0.85rem", fontWeight: 700, color: "#94a3b8", marginBottom: "1rem", textTransform: "uppercase", letterSpacing: "0.05em" }}>
             Escolaridad × Grupo Etario (Radar)
@@ -185,8 +213,10 @@ export default function Analytics() {
             </RadarChart>
           </ResponsiveContainer>
         </div>
+        </motion.div>
 
         {/* Rendimiento encuestadores */}
+        <motion.div {...cardReveal}>
         <div className="glass" style={{ padding: "1.5rem" }}>
           <h3 style={{ fontSize: "0.85rem", fontWeight: 700, color: "#94a3b8", marginBottom: "1rem", textTransform: "uppercase", letterSpacing: "0.05em" }}>
             Rendimiento por Encuestador
@@ -202,9 +232,11 @@ export default function Analytics() {
             </BarChart>
           </ResponsiveContainer>
         </div>
+        </motion.div>
       </div>
 
       {/* Tabla detallada */}
+      <motion.div {...cardReveal}>
       <div className="glass" style={{ padding: "1.5rem" }}>
         <h3 style={{ fontSize: "0.85rem", fontWeight: 700, color: "#94a3b8", marginBottom: "1rem", textTransform: "uppercase", letterSpacing: "0.05em" }}>
           Tabla Detallada — Educación × Ciudad × Departamento × Grupo Etario
@@ -248,6 +280,7 @@ export default function Analytics() {
           </table>
         </div>
       </div>
+      </motion.div>
     </div>
   );
 }

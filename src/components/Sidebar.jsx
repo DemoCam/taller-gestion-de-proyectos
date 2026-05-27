@@ -1,12 +1,13 @@
 import { useApp } from "../context/AppContext";
+import Icon from "./Icon";
 
 const MENU = [
-  { id: "dashboard",  icon: "⬡", label: "Dashboard" },
-  { id: "nueva",      icon: "✦", label: "Nueva Encuesta" },
-  { id: "encuestas",  icon: "◈", label: "Encuestas" },
-  { id: "analytics",  icon: "◉", label: "Análisis" },
-  { id: "exportar",   icon: "⇪", label: "Exportar" },
-  { id: "opciones",   icon: "⚙", label: "Configuración" },
+  { id: "dashboard",  icon: "dashboard", label: "Dashboard" },
+  { id: "nueva",      icon: "nueva",     label: "Nueva Encuesta" },
+  { id: "encuestas",  icon: "encuestas", label: "Encuestas" },
+  { id: "analytics",  icon: "analytics", label: "Análisis" },
+  { id: "exportar",   icon: "exportar",  label: "Exportar" },
+  { id: "opciones",   icon: "opciones",  label: "Configuración" },
 ];
 
 export default function Sidebar() {
@@ -37,9 +38,9 @@ export default function Sidebar() {
             background: "linear-gradient(135deg, #6366f1, #8b5cf6)",
             borderRadius: 10,
             display: "flex", alignItems: "center", justifyContent: "center",
-            fontSize: "1.1rem",
+            color: "white",
             boxShadow: "0 0 20px rgba(99,102,241,0.4)",
-          }}>⬡</div>
+          }}><Icon name="brand" size="lg" strokeWidth={2} /></div>
           <div>
             <div style={{ fontSize: "0.85rem", fontWeight: 700, color: "#f8fafc", letterSpacing: "-0.02em" }}>
               SurveyOS
@@ -60,7 +61,8 @@ export default function Sidebar() {
             className={`nav-item ${activeView === item.id ? "active" : ""}`}
             style={{ background: "none", fontFamily: "inherit", textAlign: "left", cursor: "pointer" }}
           >
-            <span style={{ fontSize: "1rem", width: 20, textAlign: "center" }}>{item.icon}</span>
+            <span className="nav-indicator" />
+            <Icon name={item.icon} size="lg" />
             <span>{item.label}</span>
             {item.id === "nueva" && (
               <span style={{
@@ -69,9 +71,10 @@ export default function Sidebar() {
                 color: "white",
                 borderRadius: 6,
                 fontSize: "0.62rem",
-                padding: "0.1rem 0.4rem",
+                padding: "0.15rem 0.45rem",
                 fontWeight: 700,
-              }}>+</span>
+                display: "inline-flex",
+              }}><Icon name="agregar" size={12} strokeWidth={2.5} /></span>
             )}
           </button>
         ))}

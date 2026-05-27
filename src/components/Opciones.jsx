@@ -1,7 +1,25 @@
 import { useState } from "react";
 import { useApp } from "../context/AppContext";
+import Icon from "./Icon";
 
-function ListaEditable({ titulo, items, onAdd, onRemove, color = "#6366f1", placeholder = "Nuevo elemento..." }) {
+function SectionHead({ icon, color, children }) {
+  return (
+    <h3 style={{
+      fontSize: "0.78rem", fontWeight: 700, color, marginBottom: "1.2rem",
+      textTransform: "uppercase", letterSpacing: "0.08em",
+      display: "flex", alignItems: "center", gap: "0.55rem",
+    }}>
+      <span style={{
+        width: 28, height: 28, borderRadius: 8, flexShrink: 0,
+        background: `${color}1f`, border: `1px solid ${color}3d`, color,
+        display: "inline-flex", alignItems: "center", justifyContent: "center",
+      }}><Icon name={icon} size="sm" /></span>
+      {children}
+    </h3>
+  );
+}
+
+function ListaEditable({ titulo, icon, items, onAdd, onRemove, color = "#6366f1", placeholder = "Nuevo elemento..." }) {
   const [nuevo, setNuevo] = useState("");
 
   function agregar() {
@@ -13,9 +31,7 @@ function ListaEditable({ titulo, items, onAdd, onRemove, color = "#6366f1", plac
 
   return (
     <div className="glass" style={{ padding: "1.5rem" }}>
-      <h3 style={{ fontSize: "0.78rem", fontWeight: 700, color, marginBottom: "1.2rem", textTransform: "uppercase", letterSpacing: "0.08em" }}>
-        {titulo}
-      </h3>
+      <SectionHead icon={icon} color={color}>{titulo}</SectionHead>
       <div style={{ display: "flex", gap: "0.5rem", marginBottom: "1rem" }}>
         <input
           value={nuevo}
@@ -25,7 +41,7 @@ function ListaEditable({ titulo, items, onAdd, onRemove, color = "#6366f1", plac
           style={{ flex: 1 }}
         />
         <button className="btn btn-primary" style={{ padding: "0.6rem 1rem" }} onClick={agregar}>
-          + Agregar
+          <Icon name="agregar" size="sm" /> Agregar
         </button>
       </div>
       <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem" }}>
@@ -39,13 +55,13 @@ function ListaEditable({ titulo, items, onAdd, onRemove, color = "#6366f1", plac
             <span>{item}</span>
             <button onClick={() => onRemove(item)} style={{
               background: "none", border: "none", color: "#64748b",
-              cursor: "pointer", fontSize: "0.8rem", padding: 0, lineHeight: 1,
-              display: "flex", alignItems: "center",
+              cursor: "pointer", padding: 0, lineHeight: 1,
+              display: "flex", alignItems: "center", transition: "color 0.15s",
             }}
               title="Eliminar"
-              onMouseOver={(e) => e.target.style.color = "#f87171"}
-              onMouseOut={(e) => e.target.style.color = "#64748b"}
-            >✕</button>
+              onMouseOver={(e) => e.currentTarget.style.color = "#f87171"}
+              onMouseOut={(e) => e.currentTarget.style.color = "#64748b"}
+            ><Icon name="cerrar" size={14} /></button>
           </div>
         ))}
       </div>
@@ -69,9 +85,7 @@ function EncuestadoresPanel({ encuestadores, onChange }) {
 
   return (
     <div className="glass" style={{ padding: "1.5rem" }}>
-      <h3 style={{ fontSize: "0.78rem", fontWeight: 700, color: "#f59e0b", marginBottom: "1.2rem", textTransform: "uppercase", letterSpacing: "0.08em" }}>
-        ✦ Equipo de Encuestadores
-      </h3>
+      <SectionHead icon="equipo" color="#f59e0b">Equipo de Encuestadores</SectionHead>
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1.5fr auto auto", gap: "0.5rem", marginBottom: "1rem", alignItems: "end" }}>
         <div>
           <label>ID</label>
@@ -89,7 +103,7 @@ function EncuestadoresPanel({ encuestadores, onChange }) {
           </select>
         </div>
         <button className="btn btn-primary" style={{ marginTop: "auto" }} onClick={agregar}>
-          + Agregar
+          <Icon name="agregar" size="sm" /> Agregar
         </button>
       </div>
       <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
@@ -104,8 +118,8 @@ function EncuestadoresPanel({ encuestadores, onChange }) {
               <span style={{ fontSize: "0.875rem", color: "#f8fafc" }}>{enc.nombre}</span>
               <span className={`badge ${enc.rol === "Supervisor" ? "badge-info" : "badge-violet"}`}>{enc.rol}</span>
             </div>
-            <button className="btn btn-danger" style={{ padding: "0.25rem 0.6rem", fontSize: "0.72rem" }}
-              onClick={() => eliminar(enc.id)}>✕</button>
+            <button className="btn btn-danger btn-icon"
+              title="Eliminar" onClick={() => eliminar(enc.id)}><Icon name="cerrar" size="sm" /></button>
           </div>
         ))}
       </div>
@@ -128,7 +142,8 @@ export default function Opciones() {
       </div>
 
       <ListaEditable
-        titulo="◈ Niveles Educativos"
+        titulo="Niveles Educativos"
+        icon="educacion"
         items={opciones.nivelesEducativos}
         color="#6366f1"
         placeholder="Ej: Doctorado"
@@ -137,7 +152,8 @@ export default function Opciones() {
       />
 
       <ListaEditable
-        titulo="⬡ Géneros"
+        titulo="Géneros"
+        icon="generos"
         items={opciones.generos}
         color="#8b5cf6"
         placeholder="Ej: Intersexual"
@@ -146,7 +162,8 @@ export default function Opciones() {
       />
 
       <ListaEditable
-        titulo="◉ Estratos Socioeconómicos"
+        titulo="Estratos Socioeconómicos"
+        icon="estratos"
         items={opciones.estratos}
         color="#06b6d4"
         placeholder="Ej: Sin estrato"
@@ -166,8 +183,8 @@ export default function Opciones() {
         padding: "1.25rem",
         background: "rgba(239,68,68,0.04)",
       }}>
-        <div style={{ fontSize: "0.78rem", fontWeight: 700, color: "#f87171", marginBottom: "0.75rem", textTransform: "uppercase", letterSpacing: "0.08em" }}>
-          ⚠ Zona de Peligro
+        <div style={{ fontSize: "0.78rem", fontWeight: 700, color: "#f87171", marginBottom: "0.75rem", textTransform: "uppercase", letterSpacing: "0.08em", display: "flex", alignItems: "center", gap: "0.5rem" }}>
+          <Icon name="peligro" size="sm" /> Zona de Peligro
         </div>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "1rem" }}>
           <div>
